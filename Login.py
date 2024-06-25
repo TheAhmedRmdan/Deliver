@@ -1,5 +1,4 @@
 import streamlit as st
-import psycopg2 as ps
 from st_login_form import login_form
 import time
 
@@ -12,4 +11,3 @@ if st.session_state["authenticated"]:
     st.switch_page("pages/Home.py")
 else:
     st.error("Not authenticated")
-
