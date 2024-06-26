@@ -30,7 +30,7 @@ def commit_to_db(df: pd.DataFrame, tab_name):
 
 
 DB_URL = st.secrets.get("connections")["sqlalchemy"]["URL"]
-SEC_DB = st.secrets.get("admin")["secrets"]
+SEC_DB = st.secrets.get("admin")["secrets"]["secret_db"]
 NASR_AREAS = ["مكرم عبيد", "الزهراء", "العاشر", "السادس", "السابع"]
 COL_CONFIG = {
     "area": st.column_config.SelectboxColumn("Area", options=NASR_AREAS),
