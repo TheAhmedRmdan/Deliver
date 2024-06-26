@@ -4,14 +4,18 @@ from sqlalchemy.types import TIME
 import time
 
 
+def logout():
+    st.session_state["authenticated"] = False
+    with st.spinner("Logging out"):
+        time.sleep(2)
+    st.switch_page("Login.py")
+
+
 def show_logout():
     with st.sidebar:
         st.write("Welcome", st.session_state["username"])
         if st.button("Logout"):
-            st.session_state["authenticated"] = False
-            with st.spinner("Logging out"):
-                time.sleep(2)
-            st.switch_page("Login.py")
+            logout()
 
 
 def get_data(table_name):
@@ -26,6 +30,7 @@ def commit_to_db(df: pd.DataFrame, tab_name):
 
 
 DB_URL = st.secrets.get("connections")["sqlalchemy"]["URL"]
+SEC_DB = st.secrets.get("admin")["secrets"]
 NASR_AREAS = ["مكرم عبيد", "الزهراء", "العاشر", "السادس", "السابع"]
 COL_CONFIG = {
     "area": st.column_config.SelectboxColumn("Area", options=NASR_AREAS),
@@ -37,6 +42,9 @@ COL_CONFIG = {
 
 show_logout()
 table_name = st.text_input("Database table name: ")
+if table_name == SEC_DB:
+    logout()
+
 if "df" not in st.session_state:
     st.session_state.df = None
 
