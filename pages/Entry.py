@@ -30,7 +30,7 @@ def commit_to_db(df: pd.DataFrame, tab_name):
 
 
 DB_URL = st.secrets.get("connections")["sqlalchemy"]["URL"]
-SEC_DB = st.secrets.get("admin")["secrets"]["secret_db"]
+SEC_DB = st.secrets.get("admin")["secrets"]
 NASR_AREAS = ["مكرم عبيد", "الزهراء", "العاشر", "السادس", "السابع"]
 COL_CONFIG = {
     "area": st.column_config.SelectboxColumn("Area", options=NASR_AREAS),
@@ -42,7 +42,7 @@ COL_CONFIG = {
 
 show_logout()
 table_name = st.text_input("Database table name: ")
-if table_name == SEC_DB:
+if table_name in SEC_DB:
     logout()
 
 if "df" not in st.session_state:
