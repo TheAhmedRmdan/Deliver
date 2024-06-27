@@ -2,7 +2,7 @@ import streamlit as st
 from st_login_form import login_form
 import time
 
-client = login_form(allow_guest=False)
+client = login_form(allow_guest=False, allow_create=False)
 if st.session_state["authenticated"]:
     with st.spinner(f"Welcome {st.session_state['username']}"):
         time.sleep(2)
