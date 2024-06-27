@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 from sqlalchemy.types import TIME
-import time
 from pages.Home import logout, show_logout
 
 
