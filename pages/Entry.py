@@ -2,20 +2,7 @@ import streamlit as st
 import pandas as pd
 from sqlalchemy.types import TIME
 import time
-
-
-def logout():
-    st.session_state["authenticated"] = False
-    with st.spinner("Logging out"):
-        time.sleep(2)
-    st.switch_page("Login.py")
-
-
-def show_logout():
-    with st.sidebar:
-        st.write("Welcome", st.session_state["username"])
-        if st.button("Logout"):
-            logout()
+from pages.Home import logout, show_logout
 
 
 def get_data(table_name):
@@ -40,27 +27,33 @@ COL_CONFIG = {
     "whatsapp": st.column_config.LinkColumn("Whatsapp URL"),
 }
 
-show_logout()
-table_name = st.text_input("Database table name: ")
-if table_name in SEC_DB:
-    logout()
 
-if "df" not in st.session_state:
-    st.session_state.df = None
+def main():
+    show_logout(button_key="Entry_Logout")
+    table_name = st.text_input("Database table name: ")
+    if table_name in SEC_DB:
+        logout()
 
-if st.button("Fetch Data"):
-    st.write("Fetching data...")
-    st.session_state.df = get_data(table_name)
+    if "df" not in st.session_state:
+        st.session_state.df = None
 
-if st.session_state.df is not None:
-    with st.form("Edit_form"):
-        edited_df = st.data_editor(
-            st.session_state.df, hide_index=True, column_config=COL_CONFIG
-        )
-        submitted = st.form_submit_button("Submit modified data")
-        if submitted:
-            commit_to_db(edited_df, table_name)
-            # Clear the session state after sending
-            st.session_state.df = None
-else:
-    st.write("No data fetched yet.")
+    if st.button("Fetch Data"):
+        st.write("Fetching data...")
+        st.session_state.df = get_data(table_name)
+
+    if st.session_state.df is not None:
+        with st.form("Edit_form"):
+            edited_df = st.data_editor(
+                st.session_state.df, hide_index=True, column_config=COL_CONFIG
+            )
+            submitted = st.form_submit_button("Submit modified data")
+            if submitted:
+                commit_to_db(edited_df, table_name)
+                # Clear the session state after sending
+                st.session_state.df = None
+    else:
+        st.write("No data fetched yet.")
+
+
+if __name__ == "__main__":
+    main()
