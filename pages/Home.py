@@ -4,6 +4,9 @@ import time
 
 def logout():
     st.session_state["authenticated"] = False
+    st.session_state.pop("df", None)
+    st.cache_resource.clear()
+    st.cache_data.clear()
     with st.spinner("Logging out"):
         time.sleep(2)
     st.switch_page("Login.py")

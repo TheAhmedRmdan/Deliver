@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from sqlalchemy.types import TIME
+import time
 from pages.Home import logout, show_logout
 
 
@@ -37,8 +38,9 @@ def main():
         st.session_state.df = None
 
     if st.button("Fetch Data"):
-        st.write("Fetching data...")
+        loading_text = st.text("Fetching data...")
         st.session_state.df = get_data(table_name)
+        loading_text.empty()
 
     if st.session_state.df is not None:
         with st.form("Edit_form"):
