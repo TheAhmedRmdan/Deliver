@@ -1,6 +1,9 @@
 import streamlit as st
 from pages.functions import *
 
+# Not ALL columns, for ease of data entry - might edit later
+col_order = ["idx", "customer", "phone", "whatsapp", "time", "area", "gmap"]
+
 
 def main():
     show_logout(button_key="Entry_Logout")
@@ -9,7 +12,11 @@ def main():
     if st.session_state.df is not None:
         with st.form("Edit_form"):
             edited_df = st.data_editor(
-                st.session_state.df, hide_index=True, column_config=COL_CONFIG
+                st.session_state.df,
+                hide_index=True,
+                column_config=COL_CONFIG,
+                column_order=col_order,
+                num_rows="dynamic",
             )
             submitted = st.form_submit_button("Submit modified data")
             if submitted:
