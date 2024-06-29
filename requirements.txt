@@ -1,3 +1,5 @@
 st-login-form
 SQLAlchemy
 psycopg2-binary
+folium
+streamlit-folium

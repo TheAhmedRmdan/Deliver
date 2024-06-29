@@ -1,26 +1,31 @@
 import streamlit as st
-import time
-
-
-def logout():
-    st.session_state["authenticated"] = False
-    st.session_state.pop("df", None)
-    st.cache_resource.clear()
-    st.cache_data.clear()
-    with st.spinner("Logging out"):
-        time.sleep(2)
-    st.switch_page("Login.py")
-
-
-def show_logout(button_key):
-    with st.sidebar:
-        st.write("Welcome", st.session_state["username"])
-        if st.button("Logout", key=button_key):
-            logout()
+import folium
+import streamlit_folium as sf
+from pages.functions import *
 
 
 def main():
     show_logout(button_key="Home_Logout")
+    user_table_name = st.text_input("Enter table name: ")
+    process_table(user_table_name)
+    if st.session_state.df is not None:
+        df: pd.DataFrame = st.session_state.df
+        shown_df = df[["idx", "customer", "phone", "whatsapp", "time", "gmap"]]
+        shown_df["whatsapp"] = df["phone"].dropna().apply(generate_wa)
+        shown_df["phone"] = shown_df["phone"].dropna().apply(lambda x: "tel:" + x)
+        st.dataframe(shown_df, hide_index=True, column_config=COL_CONFIG)
+
+        # Map
+        coords = df["coords"].dropna().apply(lambda x: eval(x)).tolist()
+        fmap = folium.Map(location=coords[0], tiles="cartodbvoyager", zoom_start=13)
+        for loc in coords:
+            popup = get_customer_by_coords(loc, df)
+            folium.Marker(loc, icon=folium.Icon(), popup=popup).add_to(fmap)
+        sf.folium_static(fmap)
+
+        st.divider()
+        st.subheader("Google Maps Directions: ")
+        st.write(generate_google_maps_directions_url(coords))
 
 
 if __name__ == "__main__":
