@@ -7,7 +7,6 @@ import requests
 
 DB_URL = st.secrets.get("connections")["sqlalchemy"]["URL"]
 SEC_DB = st.secrets.get("admin")["secrets"]["secret_db"]
-ORS_API_KEY = st.secrets.get("admin")["secrets"]["ORS_API_KEY"]
 TOMTOM_API = st.secrets.get("admin")["secrets"]["TOMTOM_API"]
 NASR_AREAS = [
     "ش نزهة",
@@ -42,7 +41,6 @@ NASR_AREAS = [
     "منشية ناصر",
     "دويقة",
 ]
-
 COL_CONFIG = {
     "area": st.column_config.SelectboxColumn("Area", options=NASR_AREAS),
     "gmap": st.column_config.LinkColumn("Maps URL"),
@@ -126,29 +124,39 @@ def generate_wa(phone: str):
 
 def convert_coords_to_api_format(old_coords: list):
     tomtom_format = []
+    chunk = []
     for coord in old_coords:
-        tomtom_format.append(
+        chunk.append(
             {"point": {"latitude": float(coord[0]), "longitude": float(coord[1])}}
         )
+        if len(chunk) == 12:
+            tomtom_format.append(chunk)
+            chunk = []
+    # Append the remaining coordinates if any
+    if chunk:
+        tomtom_format.append(chunk)
     return tomtom_format
 
 
 def get_optimized_coords(original_coords: list):
     base_url = f"https://api.tomtom.com/routing/waypointoptimization/1?key={TOMTOM_API}"
-    waypoints = convert_coords_to_api_format(original_coords)
-    options = {
-        "departAt": "now",
-        "traffic": "live",
-        "waypointConstraints": {
-            "originIndex": -1,
-            "destinationIndex": -1,
-        },
-    }
-    json_params = {"waypoints": waypoints, "options": options}
-    response = requests.post(base_url, json=json_params)
-    optimizedOrder_indexes = response.json()["optimizedOrder"]
-    optimized_coords = [original_coords[i] for i in optimizedOrder_indexes]
-    return optimized_coords
+    optimized_coords_per_chunk = []
+    for chunk in convert_coords_to_api_format(original_coords):
+        options = {
+            "departAt": "now",
+            "traffic": "live",
+            "waypointConstraints": {
+                "originIndex": -1,
+                "destinationIndex": -1,
+            },
+        }
+        json_params = {"waypoints": chunk, "options": options}
+        response = requests.post(base_url, json=json_params)
+        optimizedOrder_indexes = response.json()["optimizedOrder"]
+        optimized_coords_per_chunk.append(
+            [original_coords[i] for i in optimizedOrder_indexes]
+        )
+    return optimized_coords_per_chunk
 
 
 def generate_gmaps_directions_url(coordinates, start_from_device_location=True):

@@ -22,10 +22,13 @@ def main():
         st.subheader("Orders Map: ")
         coords = df["coords"].dropna().apply(lambda x: eval(x)).tolist()
         optimized_coords = get_optimized_coords(coords)
+        flattened_optimized_coords = [
+            coord_pair for sublist in optimized_coords for coord_pair in sublist
+        ]
         fmap = folium.Map(location=coords[0], tiles="cartodbvoyager", zoom_start=13)
 
         # Markers
-        for i, loc in enumerate(optimized_coords, start=1):
+        for i, loc in enumerate(flattened_optimized_coords, start=1):
             popup = get_customer_by_coords(loc, df)
             folium.Marker(
                 loc, icon=folium.Icon(prefix="fa", icon=f"{i}"), popup=popup
@@ -35,7 +38,8 @@ def main():
         # Google Maps Directions
         st.divider()
         st.subheader("Google Maps Directions: ")
-        st.write(generate_gmaps_directions_url(optimized_coords))
+        for route in optimized_coords:
+            st.write(generate_gmaps_directions_url(route))
 
 
 if __name__ == "__main__":
