@@ -1,8 +1,7 @@
 import streamlit as st
-from pages.functions import *
+from pages.utils import *
 
-# Not ALL columns, for ease of data entry - might edit later
-col_order = ["idx", "customer", "phone", "whatsapp", "time", "area", "gmap"]
+COL_ORDER = ["idx", "customer", "phone", "whatsapp", "time", "area" "gmap"]
 
 
 def main():
@@ -15,8 +14,8 @@ def main():
                 st.session_state.df,
                 hide_index=True,
                 column_config=COL_CONFIG,
-                column_order=col_order,
                 num_rows="dynamic",
+                column_order=COL_ORDER,
             )
             submitted = st.form_submit_button("Submit modified data")
             if submitted:

@@ -3,6 +3,7 @@ import time
 import pandas as pd
 from sqlalchemy.types import TIME
 import re
+import requests
 
 DB_URL = st.secrets.get("connections")["sqlalchemy"]["URL"]
 SEC_DB = st.secrets.get("admin")["secrets"]["secret_db"]
@@ -77,7 +78,13 @@ def get_data(table_name):
 
 
 def commit_to_db(df: pd.DataFrame, tab_name):
-    df.to_sql(tab_name, DB_URL, if_exists="replace", index=False, dtype={"time": TIME})
+    df.to_sql(
+        tab_name,
+        DB_URL,
+        if_exists="replace",
+        index=False,
+        dtype={"time": TIME, "delivered": bool},
+    )
     st.success("Pushed to database sucessfully", icon="✅")
 
 
@@ -102,6 +109,11 @@ def get_customer_by_coords(coords_value, df):
         return "No customer found for the provided coords."
 
 
+def add_tel_prefix(phone_series):
+    """Adds 'tel:' prefix to non-null phone numbers."""
+    return phone_series.apply(lambda x: "tel:" + x if pd.notnull(x) else x)
+
+
 def generate_wa(phone: str):
     phone = phone.replace(" ", "").strip()
     pattern = r"([\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6})|([\+]?[(]?[٠-٩]{3}[)]?[-\s\.]?[٠-٩]{3}[-\s\.]?[٠-٩]{4,6})"
@@ -112,10 +124,35 @@ def generate_wa(phone: str):
     return base_wa_url + match + "/"
 
 
-def generate_google_maps_directions_url(coordinates, start_from_device_location=True):
-    """A function to get the google maps dir url from raw coords for the non-optimized version.
-    Will be updated when the optimization API is implemented"""
+def convert_coords_to_api_format(old_coords: list):
+    tomtom_format = []
+    for coord in old_coords:
+        tomtom_format.append(
+            {"point": {"latitude": float(coord[0]), "longitude": float(coord[1])}}
+        )
+    return tomtom_format
 
+
+def get_optimized_coords(original_coords: list):
+    base_url = f"https://api.tomtom.com/routing/waypointoptimization/1?key={TOMTOM_API}"
+    waypoints = convert_coords_to_api_format(original_coords)
+    options = {
+        "departAt": "now",
+        "traffic": "live",
+        "waypointConstraints": {
+            "originIndex": -1,
+            "destinationIndex": -1,
+        },
+    }
+    json_params = {"waypoints": waypoints, "options": options}
+    response = requests.post(base_url, json=json_params)
+    optimizedOrder_indexes = response.json()["optimizedOrder"]
+    optimized_coords = [original_coords[i] for i in optimizedOrder_indexes]
+    return optimized_coords
+
+
+def generate_gmaps_directions_url(coordinates, start_from_device_location=True):
+    """Generates a Google Maps Directions URL based on given coordinates"""
     base_url = r"https://www.google.com/maps/dir/my%20location/"
     if not start_from_device_location:
         base_url = r"https://www.google.com/maps/dir/"
