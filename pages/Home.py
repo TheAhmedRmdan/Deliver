@@ -2,6 +2,7 @@ import streamlit as st
 import folium
 import streamlit_folium as sf
 from pages.utils import *
+from itertools import chain
 
 
 def main():
@@ -22,9 +23,7 @@ def main():
         st.subheader("Orders Map: ")
         coords = df["coords"].dropna().apply(lambda x: eval(x)).tolist()
         optimized_coords = get_optimized_coords(coords)
-        flattened_optimized_coords = [
-            coord_pair for sublist in optimized_coords for coord_pair in sublist
-        ]
+        flattened_optimized_coords = list(chain.from_iterable(optimized_coords))
         fmap = folium.Map(location=coords[0], tiles="cartodbvoyager", zoom_start=13)
 
         # Markers
