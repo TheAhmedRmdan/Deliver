@@ -14,8 +14,8 @@ def main():
         st.subheader("Orders Table: ")
         df: pd.DataFrame = st.session_state.df
         shown_df = df[["idx", "customer", "phone", "whatsapp", "time", "area", "gmap"]]
-        shown_df["whatsapp"] = df["phone"].dropna().apply(generate_wa)
-        shown_df["phone"] = add_tel_prefix(shown_df["phone"])
+        shown_df["whatsapp"] = shown_df["phone"].dropna().apply(generate_wa)
+        shown_df["phone"] = "tel:" + df["phone"].dropna()
         st.dataframe(shown_df, hide_index=True, column_config=COL_CONFIG)
         st.divider()
 

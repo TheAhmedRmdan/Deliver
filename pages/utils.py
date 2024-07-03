@@ -107,11 +107,6 @@ def get_customer_by_coords(coords_value, df):
         return "No customer found for the provided coords."
 
 
-def add_tel_prefix(phone_series):
-    """Adds 'tel:' prefix to non-null phone numbers."""
-    return phone_series.apply(lambda x: "tel:" + x if pd.notnull(x) else x)
-
-
 def generate_wa(phone: str):
     phone = phone.replace(" ", "").strip()
     pattern = r"([\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6})|([\+]?[(]?[٠-٩]{3}[)]?[-\s\.]?[٠-٩]{3}[-\s\.]?[٠-٩]{4,6})"
