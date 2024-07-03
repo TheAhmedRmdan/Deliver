@@ -1,7 +1,7 @@
 import streamlit as st
 import time
 import pandas as pd
-from sqlalchemy.types import TIME
+from sqlalchemy.types import TIME, INT
 import re
 import requests
 
@@ -42,6 +42,7 @@ NASR_AREAS = [
     "دويقة",
 ]
 COL_CONFIG = {
+    "idx": st.column_config.NumberColumn("id"),
     "customer": st.column_config.TextColumn("العميل"),
     "area": st.column_config.SelectboxColumn("المنطقة", options=NASR_AREAS),
     "gmap": st.column_config.LinkColumn("Maps URL"),
@@ -50,6 +51,9 @@ COL_CONFIG = {
     "whatsapp": st.column_config.LinkColumn("Whatsapp URL"),
     "delivered": st.column_config.CheckboxColumn("Delivered? "),
     "phone": st.column_config.LinkColumn("الهاتف"),
+    "building": st.column_config.NumberColumn("عمارة"),
+    "floor": st.column_config.NumberColumn("دور"),
+    "apartment": st.column_config.NumberColumn("شقة"),
 }
 
 
@@ -82,7 +86,13 @@ def commit_to_db(df: pd.DataFrame, tab_name):
         DB_URL,
         if_exists="replace",
         index=False,
-        dtype={"time": TIME, "delivered": bool},
+        dtype={
+            "time": TIME,
+            "idx": INT,
+            "building": INT,
+            "floor": INT,
+            "apartment": INT,
+        },
     )
     st.success("Pushed to database sucessfully", icon="✅")
 
