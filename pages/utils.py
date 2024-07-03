@@ -50,9 +50,6 @@ COL_CONFIG = {
     "whatsapp": st.column_config.LinkColumn("Whatsapp URL"),
     "delivered": st.column_config.CheckboxColumn("Delivered? "),
     "phone": st.column_config.LinkColumn("الهاتف"),
-    "building": st.column_config.NumberColumn("عمارة"),
-    "floor": st.column_config.NumberColumn("دور"),
-    "apartment": st.column_config.NumberColumn("شقة"),
 }
 
 
