@@ -42,13 +42,16 @@ NASR_AREAS = [
     "دويقة",
 ]
 COL_CONFIG = {
-    "area": st.column_config.SelectboxColumn("Area", options=NASR_AREAS),
+    "area": st.column_config.SelectboxColumn("المنطقة", options=NASR_AREAS),
     "gmap": st.column_config.LinkColumn("Maps URL"),
     "street": st.column_config.TextColumn("Street"),
-    "time": st.column_config.TimeColumn("Time", format="hh:mm a"),
+    "time": st.column_config.TimeColumn("الوقت", format="hh:mm a"),
     "whatsapp": st.column_config.LinkColumn("Whatsapp URL"),
     "delivered": st.column_config.CheckboxColumn("Delivered? "),
-    "phone": st.column_config.LinkColumn("Phone"),
+    "phone": st.column_config.LinkColumn("الهاتف"),
+    "building": st.column_config.NumberColumn("عمارة"),
+    "floor": st.column_config.NumberColumn("دور"),
+    "apartment": st.column_config.NumberColumn("شقة"),
 }
 
 

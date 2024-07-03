@@ -1,7 +1,18 @@
 import streamlit as st
 from pages.utils import *
 
-COL_ORDER = ["idx", "customer", "phone", "whatsapp", "time", "area" "gmap"]
+COL_ORDER = [
+    "idx",
+    "customer",
+    "phone",
+    "whatsapp",
+    "time",
+    "area",
+    "gmap",
+    "building",
+    "floor",
+    "apartment",
+]
 
 
 def main():
