@@ -42,6 +42,7 @@ NASR_AREAS = [
     "دويقة",
 ]
 COL_CONFIG = {
+    "customer": st.column_config.TextColumn("العميل"),
     "area": st.column_config.SelectboxColumn("المنطقة", options=NASR_AREAS),
     "gmap": st.column_config.LinkColumn("Maps URL"),
     "street": st.column_config.TextColumn("Street"),

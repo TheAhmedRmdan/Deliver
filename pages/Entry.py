@@ -5,7 +5,6 @@ COL_ORDER = [
     "idx",
     "customer",
     "phone",
-    "whatsapp",
     "time",
     "area",
     "gmap",
