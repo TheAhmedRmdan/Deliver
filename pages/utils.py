@@ -146,22 +146,27 @@ def convert_coords_to_api_format(old_coords: list):
 
 def get_optimized_coords(original_coords: list):
     base_url = f"https://api.tomtom.com/routing/waypointoptimization/1?key={TOMTOM_API}"
+    OPTIONS = {
+        "departAt": "now",
+        "traffic": "live",
+        "waypointConstraints": {
+            "originIndex": -1,
+            "destinationIndex": -1,
+        },
+    }
     optimized_coords_per_chunk = []
     for chunk in convert_coords_to_api_format(original_coords):
-        options = {
-            "departAt": "now",
-            "traffic": "live",
-            "waypointConstraints": {
-                "originIndex": -1,
-                "destinationIndex": -1,
-            },
-        }
-        json_params = {"waypoints": chunk, "options": options}
+        json_params = {"waypoints": chunk, "options": OPTIONS}
         response = requests.post(base_url, json=json_params)
-        optimizedOrder_indexes = response.json()["optimizedOrder"]
-        optimized_coords_per_chunk.append(
-            [original_coords[i] for i in optimizedOrder_indexes]
-        )
+        if response.status_code == 200:
+            optimizedOrder_indexes = response.json()["optimizedOrder"]
+            optimized_coords_per_chunk.append(
+                [original_coords[i] for i in optimizedOrder_indexes]
+            )
+        else:
+            raise requests.HTTPError(
+                f"API ERROR, RESPONSE CODE: {response.status_code}"
+            )
     return optimized_coords_per_chunk
 
 
