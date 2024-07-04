@@ -4,6 +4,7 @@ import pandas as pd
 from sqlalchemy.types import TIME, INT
 import re
 import requests
+import folium
 
 DB_URL = st.secrets.get("connections")["sqlalchemy"]["URL"]
 SEC_DB = st.secrets.get("admin")["secrets"]["secret_db"]
@@ -113,7 +114,18 @@ def get_customer_by_coords(coords_value, df):
     df["coords"] = df["coords"].dropna()
     matching_rows = df[df["coords"].str.strip() == coords_value]
     if not matching_rows.empty:
-        return str(matching_rows.iloc[0]["customer"])
+        name = str(matching_rows.iloc[0]["customer"])
+        bfa = (
+            matching_rows[["building", "floor", "apartment"]]
+            .dropna(axis=1)
+            .astype(int)
+            .squeeze()
+        )
+        building = bfa.get("building", "")
+        floor = bfa.get("floor", "")
+        apt = bfa.get("apartment", "")
+        output = f"""{name} ع:{building} د:{floor} ش:{apt}"""
+        return output
     else:
         return "No customer found for the provided coords."
 
@@ -123,7 +135,7 @@ def generate_wa(phone: str):
     pattern = r"([\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6})|([\+]?[(]?[٠-٩]{3}[)]?[-\s\.]?[٠-٩]{3}[-\s\.]?[٠-٩]{4,6})"
     base_wa_url = "https://wa.me/"
     match = re.search(pattern, phone).group()
-    if not match.startswith("0"):
+    if not match.startswith(("0", "+2", "20")):
         match = "0" + match
     return base_wa_url + match + "/"
 
@@ -147,8 +159,7 @@ def convert_coords_to_api_format(old_coords: list):
 def get_optimized_coords(original_coords: list):
     base_url = f"https://api.tomtom.com/routing/waypointoptimization/1?key={TOMTOM_API}"
     OPTIONS = {
-        "departAt": "now",
-        "traffic": "live",
+        "traffic": "historical",
         "waypointConstraints": {
             "originIndex": -1,
             "destinationIndex": -1,
@@ -180,6 +191,29 @@ def generate_gmaps_directions_url(coordinates, start_from_device_location=True):
         url_parts.append(f"{coord[0]},{coord[1]}")
     url = base_url + "/".join(url_parts)
     return url
+
+
+def add_markers_to_map(fmap: folium.Map, coords, df):
+    # Start marker
+    folium.Marker(
+        coords[0],
+        icon=folium.Icon(color="green"),
+        popup=get_customer_by_coords(coords[0], df),
+    ).add_to(fmap)
+
+    # End marker
+    folium.Marker(
+        coords[-1],
+        icon=folium.Icon(color="red"),
+        popup=get_customer_by_coords(coords[-1], df),
+    ).add_to(fmap)
+
+    # Markers between start, end
+    for i, loc in enumerate(coords[1:-1], start=0):
+        popup = get_customer_by_coords(loc, df)
+        folium.Marker(
+            loc, icon=folium.Icon(prefix="fa", icon=f"{i}"), popup=popup
+        ).add_to(fmap)
 
 
 ## Possible alternative list literal eval

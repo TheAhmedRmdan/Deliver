@@ -14,8 +14,16 @@ def main():
         st.subheader("Orders Table: ")
         df: pd.DataFrame = st.session_state.df
         shown_df = df[["idx", "customer", "phone", "whatsapp", "time", "area", "gmap"]]
-        shown_df["whatsapp"] = shown_df["phone"].dropna().apply(generate_wa)
-        shown_df["phone"] = "tel:" + df["phone"].dropna()
+        shown_df["whatsapp"] = (
+            shown_df["phone"]
+            .dropna()
+            .str.replace(" ", "")
+            .str.strip()
+            .apply(generate_wa)
+        )
+        shown_df["phone"] = (
+            "tel:" + df["phone"].dropna().str.replace(" ", "").str.strip()
+        )
         st.dataframe(shown_df, hide_index=True, column_config=COL_CONFIG)
         st.divider()
 
@@ -27,11 +35,7 @@ def main():
         fmap = folium.Map(location=coords[0], tiles="cartodbvoyager", zoom_start=13)
 
         # Markers
-        for i, loc in enumerate(flattened_optimized_coords, start=1):
-            popup = get_customer_by_coords(loc, df)
-            folium.Marker(
-                loc, icon=folium.Icon(prefix="fa", icon=f"{i}"), popup=popup
-            ).add_to(fmap)
+        add_markers_to_map(fmap, flattened_optimized_coords, df)
         sf.folium_static(fmap)
 
         # Google Maps Directions
