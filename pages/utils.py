@@ -110,9 +110,9 @@ def process_table(table_name):
 
 
 def get_customer_by_coords(coords_value, df):
-    coords_value = str(coords_value).strip()
+    coords_value = str(coords_value).replace(" ", "").strip()
     df["coords"] = df["coords"].dropna()
-    matching_rows = df[df["coords"].str.strip() == coords_value]
+    matching_rows = df[df["coords"].str.replace(" ", "").str.strip() == coords_value]
     if not matching_rows.empty:
         name = str(matching_rows.iloc[0]["customer"])
         bfa = (
@@ -121,9 +121,9 @@ def get_customer_by_coords(coords_value, df):
             .astype(int)
             .squeeze()
         )
-        building = bfa.get("building", "")
-        floor = bfa.get("floor", "")
-        apt = bfa.get("apartment", "")
+        building = bfa.get("building", "X")
+        floor = bfa.get("floor", "X")
+        apt = bfa.get("apartment", "X")
         output = f"""{name} ع:{building} د:{floor} ش:{apt}"""
         return output
     else:
