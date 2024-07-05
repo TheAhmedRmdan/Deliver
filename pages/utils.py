@@ -5,6 +5,7 @@ from sqlalchemy.types import TIME, INT
 import re
 import requests
 import folium
+import folium.plugins as plg
 
 DB_URL = st.secrets.get("connections")["sqlalchemy"]["URL"]
 SEC_DB = st.secrets.get("admin")["secrets"]["secret_db"]
@@ -194,25 +195,18 @@ def generate_gmaps_directions_url(coordinates, start_from_device_location=True):
 
 
 def add_markers_to_map(fmap: folium.Map, coords, df):
-    # Start marker
-    folium.Marker(
-        coords[0],
-        icon=folium.Icon(color="green"),
-        popup=get_customer_by_coords(coords[0], df),
-    ).add_to(fmap)
-
-    # End marker
-    folium.Marker(
-        coords[-1],
-        icon=folium.Icon(color="red"),
-        popup=get_customer_by_coords(coords[-1], df),
-    ).add_to(fmap)
-
-    # Markers between start, end
-    for i, loc in enumerate(coords[1:-1], start=0):
+    for i, loc in enumerate(coords, start=1):
         popup = get_customer_by_coords(loc, df)
         folium.Marker(
-            loc, icon=folium.Icon(prefix="fa", icon=f"{i}"), popup=popup
+            loc,
+            icon=plg.BeautifyIcon(
+                icon="font-awesome",
+                icon_shape="marker",
+                border_color="#0080FF",
+                inner_icon_style="font-size:14px;padding-top:-10px",
+                number=i,
+            ),
+            popup=popup,
         ).add_to(fmap)
 
 
