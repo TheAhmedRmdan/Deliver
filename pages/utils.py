@@ -179,6 +179,7 @@ def get_optimized_coords(original_coords: list):
             raise requests.HTTPError(
                 f"API ERROR, RESPONSE CODE: {response.status_code}"
             )
+        time.sleep(5)
     return optimized_coords_per_chunk
 
 
