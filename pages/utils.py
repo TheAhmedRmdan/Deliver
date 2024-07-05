@@ -4,8 +4,9 @@ import pandas as pd
 from sqlalchemy.types import TIME, INT
 import re
 import requests
-import folium
 import folium.plugins as plg
+import folium
+from math import ceil
 
 DB_URL = st.secrets.get("connections")["sqlalchemy"]["URL"]
 SEC_DB = st.secrets.get("admin")["secrets"]["secret_db"]
@@ -143,18 +144,19 @@ def generate_wa(phone: str):
 
 def convert_coords_to_api_format(old_coords: list):
     tomtom_format = []
-    chunk = []
     for coord in old_coords:
-        chunk.append(
+        tomtom_format.append(
             {"point": {"latitude": float(coord[0]), "longitude": float(coord[1])}}
         )
-        if len(chunk) == 12:
-            tomtom_format.append(chunk)
-            chunk = []
     # Append the remaining coordinates if any
-    if chunk:
-        tomtom_format.append(chunk)
     return tomtom_format
+
+
+def split_iterable(coords_list, max=12):
+    # Calculate the number of sublists needed
+    num_sublists = ceil(len(coords_list) / max)
+    # Generate the sublists
+    return [coords_list[i * max : (i + 1) * max] for i in range(num_sublists)]
 
 
 def get_optimized_coords(original_coords: list):
@@ -166,20 +168,35 @@ def get_optimized_coords(original_coords: list):
             "destinationIndex": -1,
         },
     }
+
+    tomtom_format = convert_coords_to_api_format(original_coords)
+    chunks = split_iterable(tomtom_format)
     optimized_coords_per_chunk = []
-    for chunk in convert_coords_to_api_format(original_coords):
+    cumulative_index = 0  # Initialize a variable to keep track of the cumulative index
+
+    for chunk in chunks:
         json_params = {"waypoints": chunk, "options": OPTIONS}
         response = requests.post(base_url, json=json_params)
         if response.status_code == 200:
             optimizedOrder_indexes = response.json()["optimizedOrder"]
-            optimized_coords_per_chunk.append(
-                [original_coords[i] for i in optimizedOrder_indexes]
-            )
+
+            # Adjust indexes based on the cumulative index
+            adjusted_indexes = [
+                (index + cumulative_index) for index in optimizedOrder_indexes
+            ]
+
+            optimized_coords_chunk = [
+                original_coords[index] for index in adjusted_indexes
+            ]
+            optimized_coords_per_chunk.append(optimized_coords_chunk)
+
+            cumulative_index += len(chunk)  # Update the cumulative index
         else:
             raise requests.HTTPError(
                 f"API ERROR, RESPONSE CODE: {response.status_code}"
             )
         time.sleep(5)
+
     return optimized_coords_per_chunk
 
 
@@ -195,11 +212,12 @@ def generate_gmaps_directions_url(coordinates, start_from_device_location=True):
     return url
 
 
-def add_markers_to_map(fmap: folium.Map, coords, df):
-    for i, loc in enumerate(coords, start=1):
+def add_markers_to_map(fmap, coordss, df):
+    for i, loc in enumerate(coordss, start=1):
+        float_loc = [float(lat) for lat in loc]
         popup = get_customer_by_coords(loc, df)
         folium.Marker(
-            loc,
+            location=loc,
             icon=plg.BeautifyIcon(
                 icon="font-awesome",
                 icon_shape="marker",
@@ -211,5 +229,9 @@ def add_markers_to_map(fmap: folium.Map, coords, df):
         ).add_to(fmap)
 
 
+# folium.Icon(prefix="fa", icon=f"{i}")
 ## Possible alternative list literal eval
 # coords = df["coords"].dropna().apply(lambda x: x.strip("[]").replace("'","").split(", ")).tolist()
+
+
+# TODO Make the starting point current device location
