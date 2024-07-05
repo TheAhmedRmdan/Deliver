@@ -8,9 +8,6 @@ import streamlit_js_eval as js
 
 def main():
     show_logout(button_key="Home_Logout")
-    # Needed to test this on an HTTPS server
-    location = js.get_geolocation(component_key="getLocation()")
-    st.write(location)
     user_table_name = st.text_input("Enter table name: ")
     process_table(user_table_name)
     if st.session_state.df is not None:
