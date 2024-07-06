@@ -146,8 +146,11 @@ def get_customer_by_coords(coords_value, df):
             matching_rows[["building", "floor", "apartment"]]
             .dropna(axis=1)
             .astype(int)
-            .squeeze()
+            .to_dict(orient="records")
         )
+        if not bfa:
+            return f"No apartment data for customer: {name}"
+        bfa = bfa[0]
         building = bfa.get("building", "X")
         floor = bfa.get("floor", "X")
         apt = bfa.get("apartment", "X")
