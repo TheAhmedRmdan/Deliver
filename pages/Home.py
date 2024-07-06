@@ -2,7 +2,6 @@ import streamlit as st
 import folium
 import streamlit_folium as sf
 from pages.utils import *
-from itertools import chain
 import streamlit_js_eval as js
 
 
@@ -28,22 +27,23 @@ def main():
         st.dataframe(shown_df, hide_index=True, column_config=COL_CONFIG)
         st.divider()
 
-        # Map
+        # Map & coords processing
         st.subheader("Orders Map: ")
         coords = df["coords"].dropna().apply(lambda x: eval(x)).tolist()
-        optimized_coords = get_optimized_coords(coords)
-        flattened_optimized_coords = list(chain.from_iterable(optimized_coords))
+        optimized_coords = ors_optimize(coords)
+        str_coords = convert_float_coords_to_str(optimized_coords)
+        splitted_coords_lists = split_iterable(str_coords, max=20)
         fmap = folium.Map(location=coords[0], tiles="cartodbvoyager", zoom_start=13)
 
         # Markers
-        add_markers_to_map(fmap, flattened_optimized_coords, df)
+        add_markers_to_map(fmap, str_coords, df)
         sf.folium_static(fmap)
 
         # Google Maps Directions
         st.divider()
         st.subheader("Google Maps Directions: ")
-        for route in optimized_coords:
-            st.write(generate_gmaps_directions_url(route))
+        for route in splitted_coords_lists:
+            st.write(generate_gmaps_directions_url(route, False))
 
 
 if __name__ == "__main__":

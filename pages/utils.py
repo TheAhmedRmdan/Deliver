@@ -7,7 +7,10 @@ import requests
 import folium.plugins as plg
 import folium
 from math import ceil
+import openrouteservice as ors
+import streamlit_js_eval as js
 
+ORS_API_KEY = st.secrets.get("admin")["secrets"]["ORS_API_KEY"]
 DB_URL = st.secrets.get("connections")["sqlalchemy"]["URL"]
 SEC_DB = st.secrets.get("admin")["secrets"]["secret_db"]
 TOMTOM_API = st.secrets.get("admin")["secrets"]["TOMTOM_API"]
@@ -142,7 +145,7 @@ def generate_wa(phone: str):
     return base_wa_url + match + "/"
 
 
-def convert_coords_to_api_format(old_coords: list):
+def convert_coords_to_TomTom_format(old_coords: list):
     tomtom_format = []
     for coord in old_coords:
         tomtom_format.append(
@@ -150,6 +153,10 @@ def convert_coords_to_api_format(old_coords: list):
         )
     # Append the remaining coordinates if any
     return tomtom_format
+
+
+def convert_float_coords_to_str(float_coords_list):
+    return [[str(x) for x in sublist] for sublist in float_coords_list]
 
 
 def split_iterable(coords_list, max=12):
@@ -169,7 +176,7 @@ def get_optimized_coords(original_coords: list):
         },
     }
 
-    tomtom_format = convert_coords_to_api_format(original_coords)
+    tomtom_format = convert_coords_to_TomTom_format(original_coords)
     chunks = split_iterable(tomtom_format)
     optimized_coords_per_chunk = []
     cumulative_index = 0  # Initialize a variable to keep track of the cumulative index
@@ -212,9 +219,8 @@ def generate_gmaps_directions_url(coordinates, start_from_device_location=True):
     return url
 
 
-def add_markers_to_map(fmap, coordss, df):
-    for i, loc in enumerate(coordss, start=1):
-        float_loc = [float(lat) for lat in loc]
+def add_markers_to_map(fmap, str_coords, df):
+    for i, loc in enumerate(str_coords, start=1):
         popup = get_customer_by_coords(loc, df)
         folium.Marker(
             location=loc,
@@ -229,9 +235,33 @@ def add_markers_to_map(fmap, coordss, df):
         ).add_to(fmap)
 
 
-# folium.Icon(prefix="fa", icon=f"{i}")
-## Possible alternative list literal eval
-# coords = df["coords"].dropna().apply(lambda x: x.strip("[]").replace("'","").split(", ")).tolist()
-
-
-# TODO Make the starting point current device location
+def ors_optimize(coordinates):
+    dummy_start = [31.3300432168778, 30.056962672342834]  # Might change later
+    geolocation = js.get_geolocation()
+    if not geolocation:
+        start_point = dummy_start
+        st.warning(
+            "لم يتم الوصول لموقع الجهاز، سيتم البدأ من نقطة محددة مسبقا في مدينة نصر"
+        )
+    else:
+        device_location = geolocation["coords"]
+        start_point = [
+            device_location.get("longitude"),
+            device_location.get("latitude"),
+        ]
+    long_lat_format = [(float(loc[1]), float(loc[0])) for loc in coordinates]
+    api = ors.Client(key=ORS_API_KEY)
+    jobs = list()
+    vehicles = [
+        ors.optimization.Vehicle(id=1, start=start_point),
+    ]
+    for idx, coord in enumerate(long_lat_format):
+        jobs.append(ors.optimization.Job(id=idx, location=coord))
+    try:
+        response = api.optimization(jobs=jobs, vehicles=vehicles)
+    except Exception as e:
+        print(e)
+    steps = response["routes"][0]["steps"]
+    optimized_coords = [step_dict["location"] for step_dict in steps]
+    lat_long_format = [[coord[1], coord[0]] for coord in optimized_coords]
+    return lat_long_format[1:-1]  # Exclude start (current device) and end (repeated)
