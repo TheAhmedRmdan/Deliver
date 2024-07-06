@@ -9,6 +9,7 @@ import folium
 from math import ceil
 import openrouteservice as ors
 import streamlit_js_eval as js
+from difflib import SequenceMatcher
 
 ORS_API_KEY = st.secrets.get("admin")["secrets"]["ORS_API_KEY"]
 DB_URL = st.secrets.get("connections")["sqlalchemy"]["URL"]
@@ -114,10 +115,31 @@ def process_table(table_name):
         loading_text.empty()
 
 
+def fuzzy_match(str1, str2, threshold=0.9):
+    """Checks if two strings are similar by at least a certain threshold using difflib."""
+    if not isinstance(str2, str):
+        return None  # Handle non-string input
+    matcher = SequenceMatcher(None, str1, str2)
+    ratio = matcher.quick_ratio()  # Get a quick similarity ratio
+    return ratio >= threshold
+
+
 def get_customer_by_coords(coords_value, df):
     coords_value = str(coords_value).replace(" ", "").strip()
-    df["coords"] = df["coords"].dropna()
+    df["coords"] = df["coords"].dropna().astype(str)
+    # Try exact match first
     matching_rows = df[df["coords"].str.replace(" ", "").str.strip() == coords_value]
+    # If no exact match, try fuzzy matching
+    if matching_rows.empty:
+        fuzzy_matches = df[
+            df["coords"]
+            .str.replace(" ", "")
+            .str.strip()
+            .apply(lambda x: fuzzy_match(coords_value, str(x)))
+        ]
+        if not fuzzy_matches.empty:
+            matching_rows = fuzzy_matches.iloc[[0]]
+
     if not matching_rows.empty:
         name = str(matching_rows.iloc[0]["customer"])
         bfa = (
