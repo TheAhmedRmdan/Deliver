@@ -155,46 +155,63 @@ def get_customer_by_coords(coords_value, df):
         if not fuzzy_matches.empty:
             matching_rows = fuzzy_matches.iloc[[0]]
 
-    if not matching_rows.empty:
-        name = str(matching_rows.iloc[0]["customer"])
-        phone = str(matching_rows.iloc[0]["phone"]).replace(" ", "").strip()
-        bfa = (
-            matching_rows[["building", "floor", "apartment"]]
-            .dropna(axis=1)
-            .astype(int)
-            .to_dict(orient="records")
-        )
-        if not bfa:
-            return f"No apartment data for customer: {name}"
-        bfa = bfa[0]
-        building = bfa.get("building", "X")
-        floor = bfa.get("floor", "X")
-        apt = bfa.get("apartment", "X")
+    if matching_rows.empty:
+        return "No customer found for the provided coords."
+    name = str(matching_rows.iloc[0]["customer"])
+    phone = str(matching_rows.iloc[0]["phone"]).replace(" ", "").strip()
+    bfa = (
+        matching_rows[["building", "floor", "apartment"]]
+        .dropna(axis=1)
+        .astype(int)
+        .to_dict(orient="records")
+    )
+    if not bfa:
         popup_html = f"""<!DOCTYPE html>
-<html>
-<head>
-<style>
-.popup-content {{
-    max-height: 100px;  /* Adjust as needed */
-    overflow-y: auto;
-}}
-</style>
-</head>
-<body>
-<div class="popup-content">
-    {name}<br>
-<a href="tel:{phone}">{phone}</a><br>
-    ع:{building}<br>
-    د:{floor}<br>
-    ش:{apt}
-</div>
-</body>
-</html>
+                    <html>
+                    <head>
+                    <style>
+                    .popup-content {{
+                        max-height: 100px;  /* Adjust as needed */
+                        overflow-y: auto;
+                    }}
+                    </style>
+                    </head>
+                    <body>
+                    <div class="popup-content">
+                        {name}<br>
+                    <a href="tel:{phone}">{phone}</a><br>
+                    لا يوجد بيانات شقة
+                    </div>
+                    </body>
+                    </html>
 """
         return popup_html
-
-    else:
-        return "No customer found for the provided coords."
+    bfa = bfa[0]
+    building = bfa.get("building", "X")
+    floor = bfa.get("floor", "X")
+    apt = bfa.get("apartment", "X")
+    popup_html = f"""<!DOCTYPE html>
+                <html>
+                <head>
+                <style>
+                .popup-content {{
+                    max-height: 100px;  /* Adjust as needed */
+                    overflow-y: auto;
+                }}
+                </style>
+                </head>
+                <body>
+                <div class="popup-content">
+                    {name}<br>
+                <a href="tel:{phone}">{phone}</a><br>
+                    ع:{building}<br>
+                    د:{floor}<br>
+                    ش:{apt}
+                </div>
+                </body>
+                </html>
+"""
+    return popup_html
 
 
 def generate_wa(phone: str):
