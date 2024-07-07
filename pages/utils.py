@@ -157,6 +157,7 @@ def get_customer_by_coords(coords_value, df):
 
     if not matching_rows.empty:
         name = str(matching_rows.iloc[0]["customer"])
+        phone = str(matching_rows.iloc[0]["phone"]).replace(" ", "").strip()
         bfa = (
             matching_rows[["building", "floor", "apartment"]]
             .dropna(axis=1)
@@ -169,8 +170,29 @@ def get_customer_by_coords(coords_value, df):
         building = bfa.get("building", "X")
         floor = bfa.get("floor", "X")
         apt = bfa.get("apartment", "X")
-        output = f"""{name} ع:{building} د:{floor} ش:{apt}"""
-        return output
+        popup_html = f"""<!DOCTYPE html>
+<html>
+<head>
+<style>
+.popup-content {{
+    max-height: 100px;  /* Adjust as needed */
+    overflow-y: auto;
+}}
+</style>
+</head>
+<body>
+<div class="popup-content">
+    {name}<br>
+<a href="tel:{phone}">{phone}</a><br>
+    ع:{building}<br>
+    د:{floor}<br>
+    ش:{apt}
+</div>
+</body>
+</html>
+"""
+        return popup_html
+
     else:
         return "No customer found for the provided coords."
 
