@@ -11,6 +11,7 @@ COL_ORDER = [
     "building",
     "floor",
     "apartment",
+    "delivered",
 ]
 
 

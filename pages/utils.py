@@ -56,7 +56,7 @@ COL_CONFIG = {
     "street": st.column_config.TextColumn("Street"),
     "time": st.column_config.TimeColumn("الوقت", format="hh:mm a"),
     "whatsapp": st.column_config.LinkColumn("Whatsapp URL"),
-    "delivered": st.column_config.CheckboxColumn("Delivered? "),
+    "delivered": st.column_config.CheckboxColumn("تم التوصيل؟"),
     "phone": st.column_config.LinkColumn("الهاتف"),
     "building": st.column_config.NumberColumn("عمارة"),
     "floor": st.column_config.NumberColumn("دور"),
@@ -113,6 +113,21 @@ def process_table(table_name):
         loading_text = st.text("Fetching data...")
         st.session_state.df = get_data(table_name)
         loading_text.empty()
+
+
+def clean_df(df):
+    """Cleans df to show to driver"""
+    delivered_mask = df["delivered"] == True
+    already_delivered = df[delivered_mask].index
+    shown_df = df.drop(already_delivered)
+    shown_df = shown_df[
+        ["idx", "customer", "phone", "whatsapp", "time", "area", "gmap"]
+    ]
+    shown_df["whatsapp"] = (
+        shown_df["phone"].dropna().str.replace(" ", "").str.strip().apply(generate_wa)
+    )
+    shown_df["phone"] = "tel:" + df["phone"].dropna().str.replace(" ", "").str.strip()
+    return shown_df
 
 
 def fuzzy_match(str1, str2, threshold=0.9):

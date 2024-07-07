@@ -2,7 +2,6 @@ import streamlit as st
 import folium
 import streamlit_folium as sf
 from pages.utils import *
-import streamlit_js_eval as js
 
 
 def main():
@@ -13,17 +12,7 @@ def main():
         # Table
         st.subheader("Orders Table: ")
         df: pd.DataFrame = st.session_state.df
-        shown_df = df[["idx", "customer", "phone", "whatsapp", "time", "area", "gmap"]]
-        shown_df["whatsapp"] = (
-            shown_df["phone"]
-            .dropna()
-            .str.replace(" ", "")
-            .str.strip()
-            .apply(generate_wa)
-        )
-        shown_df["phone"] = (
-            "tel:" + df["phone"].dropna().str.replace(" ", "").str.strip()
-        )
+        shown_df = clean_df(df)
         st.dataframe(shown_df, hide_index=True, column_config=COL_CONFIG)
         st.divider()
 
