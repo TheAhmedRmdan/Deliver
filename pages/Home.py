@@ -19,7 +19,7 @@ def main():
 
         # Map & coords processing
         st.subheader("Orders Map: ")
-        coords = cleaned_df["coords"]
+        coords = cleaned_df["coords"].to_list()
         optimized_coords = ors_optimize(coords)
         str_coords = convert_float_coords_to_str(optimized_coords)
         splitted_coords_lists = split_iterable(str_coords, max=15)
