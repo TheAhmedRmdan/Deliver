@@ -117,9 +117,8 @@ def process_table(table_name):
 
 def wrangle_df(df: pd.DataFrame):
     """Cleans df to show to driver"""
-    delivered_mask = df["delivered"] is True
-    already_delivered = df[delivered_mask].index
-    cleaned = df.drop(already_delivered)
+    delivered_mask = df["delivered"] == True
+    cleaned = df.loc[~delivered_mask]
     cleaned = cleaned[
         ["idx", "customer", "phone", "whatsapp", "time", "area", "gmap", "coords"]
     ]
