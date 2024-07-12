@@ -115,19 +115,20 @@ def process_table(table_name):
         loading_text.empty()
 
 
-def clean_df(df):
+def wrangle_df(df: pd.DataFrame):
     """Cleans df to show to driver"""
-    delivered_mask = df["delivered"] == True
+    delivered_mask = df["delivered"] is True
     already_delivered = df[delivered_mask].index
-    shown_df = df.drop(already_delivered)
-    shown_df = shown_df[
-        ["idx", "customer", "phone", "whatsapp", "time", "area", "gmap"]
+    cleaned = df.drop(already_delivered)
+    cleaned = cleaned[
+        ["idx", "customer", "phone", "whatsapp", "time", "area", "gmap", "coords"]
     ]
-    shown_df["whatsapp"] = (
-        shown_df["phone"].dropna().str.replace(" ", "").str.strip().apply(generate_wa)
+    cleaned["coords"] = cleaned["coords"].dropna().apply(lambda x: eval(x)).tolist()
+    cleaned["whatsapp"] = (
+        cleaned["phone"].dropna().str.replace(" ", "").str.strip().apply(generate_wa)
     )
-    shown_df["phone"] = "tel:" + df["phone"].dropna().str.replace(" ", "").str.strip()
-    return shown_df
+    cleaned["phone"] = "tel:" + df["phone"].dropna().str.replace(" ", "").str.strip()
+    return cleaned
 
 
 def fuzzy_match(str1, str2, threshold=0.9):
@@ -344,3 +345,6 @@ def ors_optimize(coordinates):
     optimized_coords = [step_dict["location"] for step_dict in steps]
     lat_long_format = [[coord[1], coord[0]] for coord in optimized_coords]
     return lat_long_format[1:-1]  # Exclude start (current device) and end (repeated)
+
+
+# TODO Re-write module into an Object-Oriented approach for better organization.

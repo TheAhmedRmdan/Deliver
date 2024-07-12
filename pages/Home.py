@@ -12,13 +12,14 @@ def main():
         # Table
         st.subheader("Orders Table: ")
         df: pd.DataFrame = st.session_state.df
-        shown_df = clean_df(df)
+        cleaned_df = wrangle_df(df)
+        shown_df = cleaned_df.drop(columns=["coords"])
         st.dataframe(shown_df, hide_index=True, column_config=COL_CONFIG)
         st.divider()
 
         # Map & coords processing
         st.subheader("Orders Map: ")
-        coords = df["coords"].dropna().apply(lambda x: eval(x)).tolist()
+        coords = cleaned_df["coords"]
         optimized_coords = ors_optimize(coords)
         str_coords = convert_float_coords_to_str(optimized_coords)
         splitted_coords_lists = split_iterable(str_coords, max=15)
