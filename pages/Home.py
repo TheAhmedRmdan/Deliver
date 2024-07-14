@@ -33,7 +33,7 @@ def main():
         st.divider()
         st.subheader("Google Maps Directions: ")
         for route in splitted_coords_lists:
-            st.write(generate_gmaps_directions_url(route, False))
+            st.write(generate_gmaps_directions_url(route, True))
 
 
 if __name__ == "__main__":
