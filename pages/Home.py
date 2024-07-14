@@ -23,7 +23,7 @@ def main():
         optimized_coords = ors_optimize(coords)
         str_coords = convert_float_coords_to_str(optimized_coords)
         splitted_coords_lists = split_iterable(str_coords, max=15)
-        fmap = folium.Map(location=coords[0], tiles="cartodbvoyager", zoom_start=13)
+        fmap = folium.Map(location=coords[0], tiles="OpenStreetMap", zoom_start=13)
 
         # Markers
         add_markers_to_map(fmap, str_coords, df)
