@@ -3,6 +3,7 @@ import folium
 import streamlit_folium as sf
 from pages.utils import *
 import datetime
+import io
 
 
 def main():
@@ -29,15 +30,21 @@ def main():
         # Markers
         add_markers_to_map(fmap, str_coords, df)
         sf.folium_static(fmap)
-        if st.button("تحميل الخريطة"):
-            today = datetime.datetime.now()
-            filename = (
-                st.session_state["username"]
-                + "-"
-                + today.strftime("%d-%m-%Y")
-                + ".xlsx"
-            )
-            fmap.save(filename)
+        today = datetime.datetime.now()
+        filename = (
+            st.session_state["username"] + "-" + today.strftime("%d-%m-%Y") + ".xlsx"
+        )
+        in_memory_fp = io.BytesIO()
+        fmap.save(in_memory_fp, close_file=False)
+        in_memory_fp.seek(0)  # Move to the beginning of the file
+
+        # Offer the in-memory file for download
+        st.download_button(
+            label="Download HTML File",
+            data=in_memory_fp,
+            file_name=filename,
+            mime="text/html",
+        )
         # Google Maps Directions
         st.divider()
         st.subheader("Google Maps Directions: ")
