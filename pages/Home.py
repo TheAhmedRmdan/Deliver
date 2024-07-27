@@ -2,12 +2,13 @@ import streamlit as st
 import folium
 import streamlit_folium as sf
 from pages.utils import *
+import datetime
 
 
 def main():
     show_logout(button_key="Home_Logout")
     user_table_name = st.text_input("Enter table name: ")
-    process_table(user_table_name)
+    process_table(user_table_name.lower())
     if st.session_state.df is not None:
         # Table
         st.subheader("Orders Table: ")
@@ -28,7 +29,15 @@ def main():
         # Markers
         add_markers_to_map(fmap, str_coords, df)
         sf.folium_static(fmap)
-
+        if st.button("تحميل الخريطة"):
+            today = datetime.datetime.now()
+            filename = (
+                st.session_state["username"]
+                + "-"
+                + today.strftime("%d-%m-%Y")
+                + ".xlsx"
+            )
+            fmap.save(filename)
         # Google Maps Directions
         st.divider()
         st.subheader("Google Maps Directions: ")
