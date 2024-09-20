@@ -17,6 +17,7 @@ COL_ORDER = [
 
 def main():
     table_name = st.text_input("Database table name: ")
+    table_name = table_name.lower()
     process_table(table_name)
     if st.session_state.df is not None:
         with st.form("Edit_form"):

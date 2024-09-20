@@ -32,7 +32,7 @@ def main():
         sf.folium_static(fmap)
         today = datetime.datetime.now()
         filename = (
-            st.session_state["username"] + "-" + today.strftime("%d-%m-%Y") + ".xlsx"
+            st.session_state["username"] + "-" + today.strftime("%d-%m-%Y") + ".html"
         )
         in_memory_fp = io.BytesIO()
         fmap.save(in_memory_fp, close_file=False)
