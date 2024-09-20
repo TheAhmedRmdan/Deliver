@@ -16,7 +16,6 @@ COL_ORDER = [
 
 
 def main():
-    show_logout(button_key="Entry_Logout")
     table_name = st.text_input("Database table name: ")
     process_table(table_name)
     if st.session_state.df is not None:
@@ -38,4 +37,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    entry_user = st.text_input("Enter user: ")
+    entry_user = entry_user.lower().strip().replace(" ", "")
+    if entry_user == "gomaa":
+        main()
+    else:
+        st.warning("Wrong user, contact admin")
