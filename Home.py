@@ -7,7 +7,6 @@ import io
 
 
 def main():
-    show_logout(button_key="Home_Logout")
     user_table_name = st.text_input("Enter table name: ")
     process_table(user_table_name.lower())
     if st.session_state.df is not None:
